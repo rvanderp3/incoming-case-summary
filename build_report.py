@@ -75,16 +75,16 @@ def getHtmlLine(result):
     "<td>"+getCaseSummary(result)+"</td></tr>"
 
 def getHtmlDoc(doc):
-    outdoc = '<html><body style="font-family: sans-serif;">'+ \
-    '<h3>Cases from the last 7 days</h3>'+ \
+    outdoc = '<html>\n<head> <style>table, th, td {    border: 1px solid black;    border-collapse: collapse;}th, td {    padding: 5px;}</style></head>\n<body style="font-family: sans-serif;">\n'+ \
+    '<h3>Cases from the last 7 days</h3>\n'+ \
     'Collected at: ' + str(datetime.now()) + \
-    '<table>'+ \
-    '<tr style="font-weight: bolder;background-color: black;border-color: black;color: white;"><td>Opened</td><td>Case</td><td>Telemetry</td><td>Description</td></tr>'
+    '<table>\n'+ \
+    '<tr style="font-weight: bolder;background-color: black;border-color: black;color: white;"><td>Opened</td><td>Case</td><td>Telemetry</td><td>Description</td></tr>\n'
     for result in doc:
         summary = getCaseSummary(result).lower()        
         for keyword in keywords:
             if keyword in summary:
-                outdoc = outdoc + getHtmlLine(result)
+                outdoc = outdoc + getHtmlLine(result) + "\n"
                 break    
     return outdoc + '</table></body></html>'
 
