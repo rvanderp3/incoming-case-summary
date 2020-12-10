@@ -3,6 +3,11 @@
 Performs a query of case data and builds a simple HTML report.  Internal systems are queried and host the report.  Their urls are not included in the code or README.  The `clusterUid` and `caseNo` are critical variables that are expanded in the URL.
 
 ~~~
+export OC_USERNAME=
+export OC_PASSWORD=
+export OC_PROJECT=
+export OC_POD_LABEL=
+export OC_API_URL=
 export HYDRA_PASSWORD=
 export HYDRA_USERNAME=
 export HYDRA_PASSWORD=

@@ -21,8 +21,13 @@ OC_API_URL=os.environ.get('OC_API_URL')
 if HYDRA_USERNAME == None or \
     HYDRA_PASSWORD == None or \
     CASE_URL == None or \
+    OC_USERNAME == None or \
+    OC_PASSWORD == None or \
+    OC_PROJECT == None or \
+    OC_POD_LABEL == None or \
+    OC_API_URL == None or \
     TELEMETRY_URL == None:    
-    print("Unable to start.  the following environment variables must be defined: \n - HYDRA_USERNAME\n - HYDRA_USERNAME\n - TELEMETRY_URL\n - CASE_URL")
+    print("Unable to start.  The following environment variables must be defined: \n - HYDRA_USERNAME\n - HYDRA_PASSWORD\n - TELEMETRY_URL\n - CASE_URL\n - OC_USERNAME\n - OC_PASSWORD\n - OC_PROJECT\n - OC_POD_LABEL\n - OC_API_URL")
     sys.exit(1)
 
 if SEARCH_KEYWORDS == None:
@@ -72,6 +77,7 @@ def getHtmlLine(result):
 def getHtmlDoc(doc):
     outdoc = '<html><body style="font-family: sans-serif;">'+ \
     '<h3>Cases from the last 7 days</h3>'+ \
+    'Collected at: ' + str(datetime.now()) + \
     '<table>'+ \
     '<tr style="font-weight: bolder;background-color: black;border-color: black;color: white;"><td>Opened</td><td>Case</td><td>Telemetry</td><td>Description</td></tr>'
     for result in doc:
@@ -82,6 +88,21 @@ def getHtmlDoc(doc):
                 break    
     return outdoc + '</table></body></html>'
 
+def pushCaseSummary():
+    result = subprocess.run(["oc", "login", OC_API_URL, "-u", OC_USERNAME, "-p", OC_PASSWORD])
+    result.check_returncode()
+    print("Getting hosting pod")
+    result = subprocess.run(["oc", "get", "pods", "-l", OC_POD_LABEL, "-n", OC_PROJECT, "-o=jsonpath='{.items[0].metadata.name}'"], capture_output=True)
+    result.check_returncode()
+
+    podName = result.stdout.decode("utf-8")
+    podName = podName.replace("'","")
+
+    print("Pushing report to " + podName)
+
+    result = subprocess.run(["oc", "cp", "case_report.html", podName+":index.html"])
+    result.check_returncode()
+    
 call_list = \
 {
     'case_product': ['OpenShift Container Platform'], 
@@ -92,6 +113,7 @@ call_list = \
     'rows': 10000
 }
 
+print("Collecting case data")
 results = hapi.search_cases(**call_list)
 
 if "response" in results:
@@ -100,6 +122,8 @@ if "response" in results:
         with open("case_report.html", "w") as outfile:
             outfile.write(getHtmlDoc(response["docs"]))
             print("Wrote case_report.html")
+            print("Pushing case report")
+        pushCaseSummary()
 else:
     print("Received invalid response")        
 
